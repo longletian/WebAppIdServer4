@@ -35,10 +35,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddIdentityServerAuthentication((option) => { 
+    .AddIdentityServerAuthentication(JwtBearerDefaults.AuthenticationScheme,
+    option => {
+        option.Authority = "http://localhost:5000";
         option.RequireHttpsMetadata = false;
         option.ApiName = "api1";
-        option.Authority = "http://localhost:5000";
+        option.ApiSecret = "apipwd";
     });
 
 builder.Services.AddAuthorization();
@@ -78,20 +80,22 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
+app.UseRouting();
 app.UseAuthorization();
 app.GetUserAction();
 
-//app.MapGet("/identity", [Authorize(Roles = "admin")] (HttpRequest httpRequest) =>
-//{
-//    return new JsonResult(from c in httpRequest.HttpContext.User.Claims?.ToList() select new { c.Type, c.Value });
-//});
-
-app.MapGet("/identity", (HttpRequest httpRequest) =>
+app.MapGet("/identity", [Authorize(Roles = "admin")] (HttpRequest httpRequest) =>
 {
     return new JsonResult(from c in httpRequest.HttpContext.User.Claims?.ToList() select new { c.Type, c.Value });
-}).RequireAuthorization((option) => {
-    option.RequireClaim("username", "zhangsan");
 });
+
+//app.MapGet("/identity", (HttpRequest httpRequest) =>
+//{
+//    return new JsonResult(from c in httpRequest.HttpContext.User.Claims?.ToList() select new { c.Type, c.Value });
+//})
+//.RequireAuthorization((option) => {
+//    option.RequireClaim("username", "zhangsan");
+//});
 
 try
 {

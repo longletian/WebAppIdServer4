@@ -1,15 +1,15 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using WebMvcClient.Services;
 
 namespace WebMvcClient.Pages
 {
-    [Authorize]
-    public class PrivacyModel : PageModel
+    public class GithubModel : PageModel
     {
         private readonly ILogger<PrivacyModel> _logger;
         private readonly IHttpContextAccessor _contextAccessor;
-        public PrivacyModel(ILogger<PrivacyModel> logger, IHttpContextAccessor contextAccessor)
+        public GithubModel(ILogger<PrivacyModel> logger, IHttpContextAccessor contextAccessor)
         {
             _logger = logger;
             _contextAccessor = contextAccessor;
@@ -20,5 +20,6 @@ namespace WebMvcClient.Pages
             ViewData["accessToken"] = _contextAccessor.HttpContext.GetTokenAsync("access_token").Result;
             ViewData["idToken"] = _contextAccessor.HttpContext.GetTokenAsync("id_token").Result;
         }
+
     }
 }

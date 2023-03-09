@@ -25,8 +25,13 @@ namespace WebAppIdServer4
             new ApiResource[] {
             new ApiResource("api1","api1")
             {
-                Scopes={ "client_scope1","Implicit_scope1" },
-                UserClaims={ JwtClaimTypes.Role,ClaimTypes.Role}
+                Scopes={ 
+                    //"client_scope1",
+                    //"Implicit_scope1",
+                    "code_scope1"
+                },
+                UserClaims={ JwtClaimTypes.Role,ClaimTypes.Role},
+                ApiSecrets={ new Secret("apipwd".Sha256())}
             }
         };
 
@@ -39,7 +44,10 @@ namespace WebAppIdServer4
         {
             return new ApiScope[]
             {
-                new ApiScope("client_scope1"),
+                new ApiScope(
+                    //"client_scope1",
+                    "code_scope1"
+                    ),
             };
         }
 
@@ -95,6 +103,30 @@ namespace WebAppIdServer4
                     RequireConsent=true,
                     AllowAccessTokensViaBrowser=true,
                     AlwaysIncludeUserClaimsInIdToken=true,
+                },
+                new Client()
+                {
+                    ClientId="CodeClient",
+                    ClientName="CodeClient",
+                    AllowedGrantTypes=GrantTypes.Code,
+                    RedirectUris={
+                        // 跳转到客户端的地址
+                        "http://localhost:5003/signin-oidc",
+                    },
+                    // 跳转登出到的客户端的地址
+                    PostLogoutRedirectUris={
+                        "http://localhost:5003/signout-callback-oidc",
+                    },
+                    ClientSecrets={ new Secret("6KGqzUx6nfZZp0a4NH2xenWSJQWAT8la".Sha256()) },
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        "code_scope1"
+                    },
+                    RequireConsent=true,
+                    AllowAccessTokensViaBrowser=true,
+                    AlwaysIncludeUserClaimsInIdToken=true,
                 }
             };
         }
@@ -114,8 +146,8 @@ namespace WebAppIdServer4
                    Password="123456",
                    Claims={
                       new Claim(JwtClaimTypes.Name,"letian"),
-                      new Claim(JwtClaimTypes.Role,"admin"),
-                      //new Claim(ClaimTypes.Role,"admin"),
+                      //new Claim(JwtClaimTypes.Role,"admin"),
+                      new Claim(ClaimTypes.Role,"admin"),
                       new Claim("username", "zhangsan")
         },
                }

@@ -1,7 +1,7 @@
 ﻿@page
-@model PrivacyModel
+@model GithubModel
 @{
-    ViewData["Title"] = "Privacy page";
+    ViewData["Title"] = "Github page";
 }
 @inject IHttpContextAccessor context;
 @using Microsoft.AspNetCore.Authentication
@@ -22,10 +22,10 @@
 
 <h2>Properties</h2>
 
-<dl>
+@*<dl>
     @foreach (var prop in (await context.HttpContext.AuthenticateAsync()).Properties.Items)
     {
         <dt>@prop.Key</dt>
         <dd>@prop.Value</dd>
     }
-</dl>
+</dl>*@

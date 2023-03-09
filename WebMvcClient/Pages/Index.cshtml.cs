@@ -2,27 +2,23 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Newtonsoft.Json;
+using System.Net.Http.Headers;
 
 namespace WebMvcClient.Pages
 {
     public class IndexModel : PageModel
     {
         private readonly ILogger<IndexModel> _logger;
-        private readonly IHttpContextAccessor _contextAccessor;
-        public IndexModel(ILogger<IndexModel> logger, IHttpContextAccessor contextAccessor)
+        public IndexModel(ILogger<IndexModel> logger)
         {
             _logger = logger;
-            _contextAccessor = contextAccessor;
         }
    
-        public void OnGet()
+        public  void OnGet()
         {
-            var request = _contextAccessor.HttpContext.Request;
-            var url = $"{request.Scheme}://{request.Host}{request.PathBase}{request.Path}-callback?provider=GitHub&redirectUrl=";
-
-            HttpRequest httpRequest = _contextAccessor.HttpContext.Request;
-
- 
+           
         }
     }
 }
