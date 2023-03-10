@@ -1,3 +1,4 @@
+using IdentityServer4.Test;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -21,22 +22,25 @@ builder.Services.AddIdentityServer()
 // 解决IdentityServer4使用chrome 80版本进行登录后无法跳转的问题
 builder.Services.ConfigureNonBreakingSameSiteCookies();
 
+//builder.Services.Configure<OAuthOption>;
+
+
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     //options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-    .AddCookie((options) =>
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, (options) =>
     {
         options.Cookie.IsEssential = true;
-        //options.LoginPath = "/signin";
+        //options.LoginPath = "/signin/";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(1);  
         //options.LogoutPath = "/signout";
     })
     .AddGitHub((options) =>
     {
         options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
         OAuthOption oAuthOption = builder.Configuration.GetSection("Github").Get<OAuthOption>();
         if (oAuthOption == null)
             throw new Exception(nameof(oAuthOption));
@@ -68,6 +72,13 @@ builder.Services.AddAuthentication(options =>
     //.AddIdentityServerJwt();
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddCors(o => o.AddPolicy("CorsPolicy", b =>
+{
+    b.AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+}));
+
 
 var app = builder.Build();
 app.UseStaticFiles();

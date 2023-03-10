@@ -28,7 +28,8 @@ namespace WebAppIdServer4
                 Scopes={ 
                     //"client_scope1",
                     //"Implicit_scope1",
-                    "code_scope1"
+                    //"code_scope1",
+                    "hybrid_scope1"
                 },
                 UserClaims={ JwtClaimTypes.Role,ClaimTypes.Role},
                 ApiSecrets={ new Secret("apipwd".Sha256())}
@@ -44,10 +45,11 @@ namespace WebAppIdServer4
         {
             return new ApiScope[]
             {
-                new ApiScope(
-                    //"client_scope1",
-                    "code_scope1"
-                    ),
+                //new ApiScope(
+                //    //"client_scope1",
+                //    "code_scope1"
+                //    ),
+                new ApiScope("hybrid_scope1")
             };
         }
 
@@ -88,7 +90,7 @@ namespace WebAppIdServer4
                     //ClientSecrets={ new Secret("6KGqzUx6nfZZp0a4NH2xenWSJQWAT8la".Sha256()) },
                     RedirectUris={
                         // 跳转登录到的客户端的地址
-                        "http://localhost:5003/signin-oidc",  
+                        "http://localhost:5003/signin-oidc",
                     },
                     //PostLogoutRedirectUris={
                         // 跳转登出到的客户端的
@@ -127,6 +129,34 @@ namespace WebAppIdServer4
                     RequireConsent=true,
                     AllowAccessTokensViaBrowser=true,
                     AlwaysIncludeUserClaimsInIdToken=true,
+                },
+                new Client()
+                {
+                    ClientId="HybridClient",
+                    ClientName="HybridClient",
+                    AllowedGrantTypes=GrantTypes.Hybrid,
+                    RedirectUris={
+                        // 跳转到客户端的地址
+                        "http://localhost:5003/signin-oidc",
+                    },
+                    // 跳转登出到的客户端的地址
+                    PostLogoutRedirectUris={
+                        "http://localhost:5003/signout-callback-oidc",
+                    },
+                    ClientSecrets={ new Secret("6KGqzUx6nfZZp0a4NH2xenWSJQWAT8la".Sha256()) },
+                    AllowedScopes =
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        IdentityServerConstants.StandardScopes.Email,
+                        "hybrid_scope1"
+                    },
+                    // 这样服务端便不在需要客户端提供code challeng
+                    RequirePkce=false,
+                    RequireConsent=true,
+                    // 允许将token通过浏览器传递
+                    AllowAccessTokensViaBrowser=true,
+                    AlwaysIncludeUserClaimsInIdToken=true,
                 }
             };
         }
@@ -146,10 +176,9 @@ namespace WebAppIdServer4
                    Password="123456",
                    Claims={
                       new Claim(JwtClaimTypes.Name,"letian"),
-                      //new Claim(JwtClaimTypes.Role,"admin"),
                       new Claim(ClaimTypes.Role,"admin"),
                       new Claim("username", "zhangsan")
-        },
+                   },
                }
            };
         }

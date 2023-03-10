@@ -18,7 +18,7 @@
         public string CallbackPath { get; set; }
 
         /// <summary>
-        /// 
+        /// 授权范围
         /// </summary>
         public List<string> Scopes { get; set; }
     }

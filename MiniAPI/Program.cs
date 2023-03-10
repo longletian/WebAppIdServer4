@@ -84,18 +84,21 @@ app.UseRouting();
 app.UseAuthorization();
 app.GetUserAction();
 
-app.MapGet("/identity", [Authorize(Roles = "admin")] (HttpRequest httpRequest) =>
-{
-    return new JsonResult(from c in httpRequest.HttpContext.User.Claims?.ToList() select new { c.Type, c.Value });
-});
-
-//app.MapGet("/identity", (HttpRequest httpRequest) =>
+//app.MapGet("/identity", [Authorize] (HttpRequest httpRequest) =>
 //{
 //    return new JsonResult(from c in httpRequest.HttpContext.User.Claims?.ToList() select new { c.Type, c.Value });
-//})
-//.RequireAuthorization((option) => {
-//    option.RequireClaim("username", "zhangsan");
 //});
+
+// ÈÏÖ¤
+app.MapGet("/identity", (HttpRequest httpRequest) =>
+{
+    return new JsonResult(from c in httpRequest.HttpContext.User.Claims?.ToList() select new { c.Type, c.Value });
+})
+// ÊÚÈ¨
+.RequireAuthorization((option) =>
+{
+    option.RequireClaim(ClaimTypes.Role,"admin");
+});
 
 try
 {

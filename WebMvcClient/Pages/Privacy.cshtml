@@ -6,12 +6,19 @@
 @inject IHttpContextAccessor context;
 @using Microsoft.AspNetCore.Authentication
 
-
-
 <span>accessToken: @ViewData["accessToken"] </span>
 <span>idToken: @ViewData["idToken"] </span>
-<h2>Claims</h2>
+<span>refreshToken: @ViewData["refreshToken"] </span>
 
+<div class="">
+    <form method="post">
+        <button type="submit" class="btn-primary">调用Api</button>
+    </form>
+
+  
+</div>
+
+<h2>Claims</h2>
 <dl>
     @foreach (var claim in User.Claims)
     {
@@ -29,3 +36,4 @@
         <dd>@prop.Value</dd>
     }
 </dl>
+

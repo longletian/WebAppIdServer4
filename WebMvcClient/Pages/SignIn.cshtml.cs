@@ -7,6 +7,7 @@ namespace WebMvcClient.Pages
     {
         public void OnGet()
         {
+
         }
     }
 }
