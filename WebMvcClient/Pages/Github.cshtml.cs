@@ -7,9 +7,9 @@ namespace WebMvcClient.Pages
 {
     public class GithubModel : PageModel
     {
-        private readonly ILogger<PrivacyModel> _logger;
+        private readonly ILogger<GithubModel> _logger;
         private readonly IHttpContextAccessor _contextAccessor;
-        public GithubModel(ILogger<PrivacyModel> logger, IHttpContextAccessor contextAccessor)
+        public GithubModel(ILogger<GithubModel> logger, IHttpContextAccessor contextAccessor)
         {
             _logger = logger;
             _contextAccessor = contextAccessor;

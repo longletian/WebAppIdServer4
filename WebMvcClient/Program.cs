@@ -26,7 +26,7 @@ builder.Services.AddAuthentication((option) =>
 //.AddOpenIdConnect("oidc", options =>
 //{
 //    options.Authority = "http://localhost:5000";  //授权服务器地址
-//    //options.SignInScheme = "Cookie";
+//    options.SignInScheme = "Cookie";
 //    options.RequireHttpsMetadata = false;  //暂时不用https
 //    options.ClientId = "CodeClient";
 //    options.ClientSecret = "6KGqzUx6nfZZp0a4NH2xenWSJQWAT8la";
@@ -38,18 +38,18 @@ builder.Services.AddAuthentication((option) =>
 //    options.GetClaimsFromUserInfoEndpoint = true;
 //});
 
-  .AddOpenIdConnect("oidc", options =>
-   {
-       options.SignInScheme = "Cookies";
-       options.Authority = "http://localhost:5000";
-       options.RequireHttpsMetadata = false;
-       options.ClientId = "HybridClient";
-       options.ClientSecret = "6KGqzUx6nfZZp0a4NH2xenWSJQWAT8la";
-       options.ResponseType = "id_token code";
-       options.Scope.Add("hybrid_scope1");
-       options.SaveTokens = true;
-       options.GetClaimsFromUserInfoEndpoint = true;
-   });
+.AddOpenIdConnect("oidc", options =>
+ {
+     options.SignInScheme = "Cookies";
+     options.Authority = "http://localhost:5000";
+     options.RequireHttpsMetadata = false;
+     options.ClientId = "HybridClient";
+     options.ClientSecret = "6KGqzUx6nfZZp0a4NH2xenWSJQWAT8la";
+     options.ResponseType = "id_token code";
+     options.Scope.Add("hybrid_scope1");
+     options.SaveTokens = true;
+     options.GetClaimsFromUserInfoEndpoint = true;
+ });
 
 #region 简化模式
 //.AddOpenIdConnect("oidc", option =>
