@@ -1,11 +1,13 @@
 using IdentityServerHost;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using WebAppIdServer4;
 using WebAppIdServer4.Data;
+using WebAppIdServer4.Model.Entity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +26,7 @@ builder.Services.AddIdentityServer((options) =>
 .AddConfigurationStore(options =>
 {
     options.ConfigureDbContext = p
-        => p.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ??string.Empty, new MySqlServerVersion(new Version(8, 0, 29)), sql =>
+        => p.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ?? string.Empty, new MySqlServerVersion(new Version(8, 0, 29)), sql =>
         {
             sql.MigrationsAssembly("WebAppIdServer4");
             sql.EnableRetryOnFailure(
@@ -37,7 +39,7 @@ builder.Services.AddIdentityServer((options) =>
 .AddOperationalStore(option =>
 {
     option.ConfigureDbContext = p
-        => p.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ??string.Empty, new MySqlServerVersion(new Version(8, 0, 29)), sql =>
+        => p.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ?? string.Empty, new MySqlServerVersion(new Version(8, 0, 29)), sql =>
         {
             sql.MigrationsAssembly("WebAppIdServer4");
             sql.EnableRetryOnFailure(
@@ -49,10 +51,19 @@ builder.Services.AddIdentityServer((options) =>
     option.EnableTokenCleanup = true;
     // 自动清理 token ，可选
     option.TokenCleanupInterval = 30;
-})
-.AddTestUsers(TestUsers.Users);
+});
+//.AddAspNetIdentity<UserEntity>();
+//.AddTestUsers(TestUsers.Users);
 
-// // 数据库迁移
+// 添加人员相关的
+builder.Services.AddDbContext<IdentityDataContext>(option
+    => option.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ?? string.Empty, new MySqlServerVersion(new Version(8, 0, 29))));
+
+builder.Services.AddIdentity<UserEntity, IdentityRole>()
+    .AddEntityFrameworkStores<IdentityDataContext>()
+    .AddDefaultTokenProviders();
+
+//数据库迁移
 builder.Services.AddHostedService<SeedData>();
 #endregion
 

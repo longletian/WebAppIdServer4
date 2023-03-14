@@ -11,10 +11,12 @@
     <PackageReference Include="AspNet.Security.OAuth.Gitter" Version="6.0.14" />
     <PackageReference Include="AspNet.Security.OAuth.Weixin" Version="6.0.14" />
     <PackageReference Include="Duende.IdentityServer" Version="6.2.3" />
+    <PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="6.2.3" />
     <PackageReference Include="Duende.IdentityServer.EntityFramework" Version="6.2.3" />
     <PackageReference Include="Duende.IdentityServer.EntityFramework.Storage" Version="6.2.3" />
     <PackageReference Include="Duende.IdentityServer.Storage" Version="6.2.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

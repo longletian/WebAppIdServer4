@@ -54,24 +54,33 @@ namespace WebAppIdServer4.Data
                 }
                 context.SaveChanges();
             }
+
+
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Seeding database...");          
-            using (var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>() ?? throw new Exception("");
+            bool.TryParse(configuration.GetSection("IsSeed").ToString(), out bool isSeed);
+            if (isSeed)
             {
-                scope.ServiceProvider.GetService<PersistedGrantDbContext>()
-                    .Database.Migrate();
+                Console.WriteLine("Seeding database...");
+                using (var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
+                {
+                    scope.ServiceProvider.GetService<PersistedGrantDbContext>()
+                        .Database.Migrate();
 
-                var context = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-                context.Database.Migrate();
-                EnsureSeedData(context);
+                    scope.ServiceProvider.GetService<IdentityDataContext>()
+                        .Database.Migrate();
+
+                    var context = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+                    context.Database.Migrate();
+
+                    EnsureSeedData(context);
+                }
+                Console.WriteLine("Done seeding database.");
+                Console.WriteLine();
             }
-
-            Console.WriteLine("Done seeding database.");
-            Console.WriteLine();
-
             return Task.CompletedTask;
         }
 
