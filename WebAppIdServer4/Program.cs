@@ -24,26 +24,26 @@ builder.Services.AddIdentityServer((options) =>
 .AddConfigurationStore(options =>
 {
     options.ConfigureDbContext = p
-        => p.UseMySql("Server=localhost;Port=33060;User ID=root;Password=root;Database=IdentityServerAdmin;", new MySqlServerVersion(new Version(8, 0, 29)), sql =>
+        => p.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ??string.Empty, new MySqlServerVersion(new Version(8, 0, 29)), sql =>
         {
             sql.MigrationsAssembly("WebAppIdServer4");
-            //sql.EnableRetryOnFailure(
-            //        maxRetryCount: 5,
-            //        maxRetryDelay: System.TimeSpan.FromSeconds(30),
-            //        errorNumbersToAdd: null);
+            sql.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: System.TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
         });
 })
 // IdentityServer在使用时产生的 操作数据（令牌，代码和用户的授权信息consents）
 .AddOperationalStore(option =>
 {
     option.ConfigureDbContext = p
-        => p.UseMySql("Server=localhost;Port=33060;User ID=root;Password=root;Database=IdentityServerAdmin;", new MySqlServerVersion(new Version(8, 0, 29)), sql =>
+        => p.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ??string.Empty, new MySqlServerVersion(new Version(8, 0, 29)), sql =>
         {
             sql.MigrationsAssembly("WebAppIdServer4");
-            //sql.EnableRetryOnFailure(
-            //          maxRetryCount: 5,
-            //          maxRetryDelay: System.TimeSpan.FromSeconds(30),
-            //          errorNumbersToAdd: null);
+            sql.EnableRetryOnFailure(
+                      maxRetryCount: 5,
+                      maxRetryDelay: System.TimeSpan.FromSeconds(30),
+                      errorNumbersToAdd: null);
         });
     // 自动清理 token ，可选
     option.EnableTokenCleanup = true;
