@@ -1,3 +1,7 @@
+using Duende.IdentityServer;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
+using IdentityModel;
 using IdentityServerHost;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -12,6 +16,16 @@ using WebAppIdServer4.Model.Entity;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
+
+// 添加人员相关的
+builder.Services.AddDbContext<IdentityDataContext>(option
+    => option.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ?? string.Empty, new MySqlServerVersion(new Version(8, 0, 29))));
+
+builder.Services.AddIdentity<UserEntity, IdentityRole>()
+    .AddEntityFrameworkStores<IdentityDataContext>()
+    .AddDefaultTokenProviders();
+
+
 //builder.Services.AddControllersWithViews();
 builder.Services.AddIdentityServer((options) =>
     {
@@ -51,17 +65,10 @@ builder.Services.AddIdentityServer((options) =>
     option.EnableTokenCleanup = true;
     // 自动清理 token ，可选
     option.TokenCleanupInterval = 30;
-});
-//.AddAspNetIdentity<UserEntity>();
+})
+.AddAspNetIdentity<UserEntity>()
+.Services.AddScoped<IProfileService, ProfileServices>();
 //.AddTestUsers(TestUsers.Users);
-
-// 添加人员相关的
-builder.Services.AddDbContext<IdentityDataContext>(option
-    => option.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ?? string.Empty, new MySqlServerVersion(new Version(8, 0, 29))));
-
-builder.Services.AddIdentity<UserEntity, IdentityRole>()
-    .AddEntityFrameworkStores<IdentityDataContext>()
-    .AddDefaultTokenProviders();
 
 //数据库迁移
 builder.Services.AddHostedService<SeedData>();
@@ -92,7 +99,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddGitHub((options) =>
     {
-        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+        options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
         OAuthOption oAuthOption = builder.Configuration.GetSection("Github").Get<OAuthOption>();
         if (oAuthOption == null)
             throw new Exception(nameof(oAuthOption));
@@ -101,7 +109,7 @@ builder.Services.AddAuthentication(options =>
         options.CallbackPath = oAuthOption.CallbackPath;
         options.UsePkce = true;
         options.ClaimActions.MapAll();
-        options.ClaimActions.MapJsonKey("sub","sub");
+        options.ClaimActions.MapJsonKey("sub", "sub");
         oAuthOption.Scopes?.ForEach((item) =>
         {
             options.Scope.Add(item);
@@ -111,9 +119,6 @@ builder.Services.AddAuthentication(options =>
         {
             OnCreatingTicket = context =>
           {
-              //var fullName = context.Identity.FindFirst("urn:github:name").Value;
-              //var email = context.Identity.FindFirst(ClaimTypes.Email).Value;
-
               if (context.AccessToken is { })
               {
                   context.Identity?.AddClaim(new Claim("access_token", context.AccessToken));
