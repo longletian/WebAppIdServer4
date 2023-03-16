@@ -14,8 +14,6 @@
     <form method="post">
         <button type="submit" class="btn-primary">调用Api</button>
     </form>
-
-  
 </div>
 
 <h2>Claims</h2>
@@ -28,7 +26,6 @@
 </dl>
 
 <h2>Properties</h2>
-
 <dl>
     @foreach (var prop in (await context.HttpContext.AuthenticateAsync()).Properties.Items)
     {
@@ -36,4 +33,6 @@
         <dd>@prop.Value</dd>
     }
 </dl>
+
+
 

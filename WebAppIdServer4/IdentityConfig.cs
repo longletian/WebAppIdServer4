@@ -1,7 +1,7 @@
-﻿using IdentityModel;
-using IdentityServer4;
-using IdentityServer4.Models;
-using IdentityServer4.Test;
+﻿using Duende.IdentityServer;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Test;
+using IdentityModel;
 using System.Security.Claims;
 
 namespace WebAppIdServer4
@@ -92,10 +92,10 @@ namespace WebAppIdServer4
                         // 跳转登录到的客户端的地址
                         "http://localhost:5003/signin-oidc",
                     },
-                    //PostLogoutRedirectUris={
-                        // 跳转登出到的客户端的
-                        //"http://localhost:5003/signout-callback-oidc",
-                    //},
+                    PostLogoutRedirectUris={
+                         //跳转登出到的客户端的
+                        "http://localhost:5003/signout-callback-oidc",
+                    },
                     AllowedScopes={
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
@@ -106,6 +106,7 @@ namespace WebAppIdServer4
                     AllowAccessTokensViaBrowser=true,
                     AlwaysIncludeUserClaimsInIdToken=true,
                 },
+                // code模式
                 new Client()
                 {
                     ClientId="CodeClient",
@@ -130,6 +131,7 @@ namespace WebAppIdServer4
                     AllowAccessTokensViaBrowser=true,
                     AlwaysIncludeUserClaimsInIdToken=true,
                 },
+                // 混合模式（Hybrid）
                 new Client()
                 {
                     ClientId="HybridClient",

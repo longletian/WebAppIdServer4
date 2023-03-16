@@ -108,8 +108,7 @@ try
 }
 catch (Exception ex)
 {
-    app.Logger.LogError("项目启动异常" + JsonSerializer.Serialize(ex));
-    throw;
+    throw ex;
 }
 
 

@@ -1,75 +1,165 @@
-using IdentityServer4.Test;
+using Duende.IdentityServer;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
+using IdentityModel;
+using IdentityServerHost;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using WebAppIdServer4;
+using WebAppIdServer4.Data;
+using WebAppIdServer4.Model.Entity;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
 
-builder.Services.AddIdentityServer()
-    .AddTestUsers(IdentityConfig.GetTestUsers().ToList())
-    .AddInMemoryIdentityResources(IdentityConfig.IdentityResources)
-    .AddInMemoryApiScopes(IdentityConfig.GetApiScopes())
-    .AddInMemoryApiResources(IdentityConfig.ApiResources)
-    .AddInMemoryClients(IdentityConfig.GetClients())
-    .AddDeveloperSigningCredential();
+// 添加人员相关的
+builder.Services.AddDbContext<IdentityDataContext>(option
+    => option.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ?? string.Empty, new MySqlServerVersion(new Version(8, 0, 29))));
+
+builder.Services.AddIdentity<UserEntity, IdentityRole>()
+    .AddEntityFrameworkStores<IdentityDataContext>()
+    .AddDefaultTokenProviders();
+
+
+//builder.Services.AddControllersWithViews();
+builder.Services.AddIdentityServer((options) =>
+    {
+        options.Events.RaiseErrorEvents = true;
+        options.Events.RaiseInformationEvents = true;
+        options.Events.RaiseFailureEvents = true;
+        options.Events.RaiseSuccessEvents = true;
+    })
+
+#region 数据库
+//配置数据（资源、客户端、身份）；
+.AddConfigurationStore(options =>
+{
+    options.ConfigureDbContext = p
+        => p.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ?? string.Empty, new MySqlServerVersion(new Version(8, 0, 29)), sql =>
+        {
+            sql.MigrationsAssembly("WebAppIdServer4");
+            sql.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: System.TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+        });
+})
+// IdentityServer在使用时产生的 操作数据（令牌，代码和用户的授权信息consents）
+.AddOperationalStore(option =>
+{
+    option.ConfigureDbContext = p
+        => p.UseMySql(builder.Configuration.GetConnectionString("MysqlCon") ?? string.Empty, new MySqlServerVersion(new Version(8, 0, 29)), sql =>
+        {
+            sql.MigrationsAssembly("WebAppIdServer4");
+            sql.EnableRetryOnFailure(
+                      maxRetryCount: 5,
+                      maxRetryDelay: System.TimeSpan.FromSeconds(30),
+                      errorNumbersToAdd: null);
+        });
+    // 自动清理 token ，可选
+    option.EnableTokenCleanup = true;
+    // 自动清理 token ，可选
+    option.TokenCleanupInterval = 30;
+})
+.AddAspNetIdentity<UserEntity>()
+.Services.AddScoped<IProfileService, ProfileServices>();
+//.AddTestUsers(TestUsers.Users);
+
+//数据库迁移
+builder.Services.AddHostedService<SeedData>();
+#endregion
+
+//.AddInMemoryIdentityResources(IdentityConfig.IdentityResources)
+//.AddInMemoryApiScopes(IdentityConfig.GetApiScopes())
+//.AddInMemoryApiResources(IdentityConfig.ApiResources)
+//.AddInMemoryClients(IdentityConfig.GetClients())
+//.AddTestUsers(IdentityConfig.GetTestUsers().ToList())
+//.AddDeveloperSigningCredential();
 
 // 解决IdentityServer4使用chrome 80版本进行登录后无法跳转的问题
 builder.Services.ConfigureNonBreakingSameSiteCookies();
 
-//builder.Services.Configure<OAuthOption>;
-
-
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    //options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = "Cookies";
+    //option.DefaultChallengeScheme = "oidc";
+    //options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, (options) =>
     {
         options.Cookie.IsEssential = true;
-        //options.LoginPath = "/signin/";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(1);  
-        //options.LogoutPath = "/signout";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
+        //options.SlidingExpiration = true;
     })
     .AddGitHub((options) =>
     {
-        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
+        options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
         OAuthOption oAuthOption = builder.Configuration.GetSection("Github").Get<OAuthOption>();
         if (oAuthOption == null)
             throw new Exception(nameof(oAuthOption));
         options.ClientId = oAuthOption.ClientId;
         options.ClientSecret = oAuthOption.ClientSecret;
         options.CallbackPath = oAuthOption.CallbackPath;
+        options.UsePkce = true;
+        options.ClaimActions.MapAll();
+        options.ClaimActions.MapJsonKey("sub", "sub");
         oAuthOption.Scopes?.ForEach((item) =>
         {
             options.Scope.Add(item);
-            //options.Scope.Add("urn:github:avatar_url");
-            //options.Scope.Add("urn:github:bio");
-            //authenticateResult.Principal.FindFirst(LinConsts.Claims.AvatarUrl)?.Value;
-            //options.ClaimActions.MapJsonKey(LinConsts.Claims.AvatarUrl, "avatar_url");
-            //options.ClaimActions.MapJsonKey(LinConsts.Claims.BIO, "bio");
-            //options.ClaimActions.MapJsonKey(LinConsts.Claims.BlogAddress, "blog");
         });
-       
         //创建票据
-        options.Events.OnCreatingTicket += context =>
+        options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
         {
-            if (context.AccessToken is { })
-            {
-                context.Identity?.AddClaim(new Claim("access_token", context.AccessToken));
-            }
-            return Task.CompletedTask;
+            OnCreatingTicket = context =>
+          {
+              if (context.AccessToken is { })
+              {
+                  context.Identity?.AddClaim(new Claim("access_token", context.AccessToken));
+              }
+              string valueText = context.User.GetRawText();
+              if (!string.IsNullOrWhiteSpace(valueText))
+              {
+                  // 这里和主要是将用户信息写入Claim中，具体写入哪些到Claim中主要是下面options.ClaimActions去配置，如果是options.ClaimActions.MapAll()就是将所有的用户信息写入Claim中
+                  context.RunClaimActions(context.User);
+
+                  //options.ClaimActions.MapAll();
+              }
+              //var result = System.Text.Json.JsonSerializer.Deserialize<UserConfig>(context.User);
+              //context.Response.Cookies.Append("name", result.name);
+              return Task.CompletedTask;
+          },
+
+            // 访问被拒绝
+            //OnAccessDenied = context => {
+            //    return Task.CompletedTask;
+
+            //},
+
+            //// 认证跳转
+            //OnRedirectToAuthorizationEndpoint = context => {
+            //    return Task.CompletedTask;
+            //},
+
+            //// 接受到票据的时候触发
+            //OnTicketReceived = context => {
+            //    return Task.CompletedTask;
+            //},
+
+            //OnRemoteFailure = context => {
+            //    return Task.CompletedTask;
+            //}
         };
+      
 
     });
-    //.AddIdentityServerJwt();
+
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddCors(o => o.AddPolicy("CorsPolicy", b =>
@@ -79,7 +169,6 @@ builder.Services.AddCors(o => o.AddPolicy("CorsPolicy", b =>
         .AllowAnyHeader();
 }));
 
-
 var app = builder.Build();
 app.UseStaticFiles();
 app.UseRouting();
@@ -87,18 +176,20 @@ app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseIdentityServer();
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapDefaultControllerRoute();
+//app.UseEndpoints(endpoints =>
+//{
+//    endpoints.MapDefaultControllerRoute();
+//});
 
-    endpoints.MapGet("/signout", async ctx =>
-    {
-        await ctx.SignOutAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            new AuthenticationProperties
-            {
-                RedirectUri = "/"
-            });
-    });
-});
-app.Run();
+app.MapRazorPages();
+
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    throw ex;
+}
+
+

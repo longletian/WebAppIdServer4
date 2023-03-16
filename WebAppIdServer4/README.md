@@ -25,3 +25,13 @@ dotnet new is4ui
 
 ## Issues
 For issues, use the [consolidated IdentityServer4 issue tracker](https://github.com/IdentityServer/IdentityServer4/issues).
+
+
+
+## Ç¨ÒÆÓï¾ä
+1¡¢add-migration InitialIdentityServerPersistedGrantDbMigration -c PersistedGrantDbContext -o Data/Migrations/PersistedGrantDb 
+2¡¢add-migration InitialIdentityServerConfigurationDbMigration -c ConfigurationDbContext -o Data/Migrations/ConfigurationDb 
+3¡¢add-migration InitialIdentityServerUserDbMigration -c IdentityDataContext -o Data/Migrations/UserDb 
+4¡¢update-database -Context PersistedGrantDbContext
+5¡¢update-database -Context ConfigurationDbContext  
+6¡¢update-database -Context IdentityDataContext  

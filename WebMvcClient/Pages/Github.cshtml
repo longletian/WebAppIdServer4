@@ -6,12 +6,9 @@
 @inject IHttpContextAccessor context;
 @using Microsoft.AspNetCore.Authentication
 
-
-
-<span>accessToken: @ViewData["accessToken"] </span>
-<span>idToken: @ViewData["idToken"] </span>
+<p>accessToken: @ViewData["accessToken"] </p>
+<p>idToken: @ViewData["idToken"] </p>
 <h2>Claims</h2>
-
 <dl>
     @foreach (var claim in User.Claims)
     {
@@ -19,13 +16,3 @@
         <dd>@claim.Value</dd>
     }
 </dl>
-
-<h2>Properties</h2>
-
-@*<dl>
-    @foreach (var prop in (await context.HttpContext.AuthenticateAsync()).Properties.Items)
-    {
-        <dt>@prop.Key</dt>
-        <dd>@prop.Value</dd>
-    }
-</dl>*@
